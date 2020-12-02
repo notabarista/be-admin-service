@@ -1,0 +1,52 @@
+server:
+  port: 8093    
+  
+spring:
+  security:
+    user:
+      name: nab
+      password: 283F5f52#50A5#46ce
+  main:
+    allow-bean-definition-overriding: true    
+  boot:
+    admin:
+      client:
+        username: tudor
+        password: tudor
+        instance:
+          metadata:
+            user.name: "tudor"  
+            user.password: "tudor"  
+      monitor:
+        default-retries: 2          
+      ui:
+        title: behindTheCup       
+     
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+        - '*'    
+
+eureka:
+  client:
+    enabled: true
+    register-with-eureka: true
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+    fetchRegistry: true
+    healthcheck:
+      enabled: true
+  instance:
+    lease-expiration-duration-in-seconds: 120
+    lease-renewal-interval-in-seconds: 90
+    instance-id: ${spring.application.name}:${random.int}      
+        
+logging:
+  file: /var/log/${spring.application.name}.log
+  pattern:
+    file: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID}){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx"
+  level:
+    root: warn    
+    org.springframework.*: debug 
