@@ -12,7 +12,6 @@ import de.codecentric.boot.admin.server.config.EnableAdminServer;
 @SpringBootApplication
 @EnableAutoConfiguration
 @ComponentScan
-@EnableWebSecurity
 @EnableAdminServer
 public class AdminServerApplication {
 

@@ -1,19 +1,17 @@
 package org.notabarista.configuration;
 
-import java.util.UUID;
-
-import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-
 import de.codecentric.boot.admin.server.config.AdminServerProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 
 @Configuration
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+@EnableWebFluxSecurity
+public class WebSecurityConfig {
 
 	private final AdminServerProperties adminServer;
 
@@ -21,24 +19,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		this.adminServer = adminServer;
 	}
 
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
-		SavedRequestAwareAuthenticationSuccessHandler successHandler = new SavedRequestAwareAuthenticationSuccessHandler();
-		successHandler.setTargetUrlParameter("redirectTo");
-		successHandler.setDefaultTargetUrl(this.adminServer.getContextPath() + "/");
-
-		http.authorizeRequests().antMatchers(this.adminServer.getContextPath() + "/assets/**").permitAll()
-				.antMatchers(this.adminServer.getContextPath() + "/login").permitAll().anyRequest().authenticated()
-				.and().formLogin().loginPage(this.adminServer.getContextPath() + "/login")
-				.successHandler(successHandler).and().logout().logoutUrl(this.adminServer.getContextPath() + "/logout")
-				.clearAuthentication(true).and().httpBasic().and().csrf()
-				.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-				.ignoringRequestMatchers(
-						new AntPathRequestMatcher(this.adminServer.getContextPath() + "/instances",
-								HttpMethod.POST.toString()),
-						new AntPathRequestMatcher(this.adminServer.getContextPath() + "/instances/*",
-								HttpMethod.DELETE.toString()),
-						new AntPathRequestMatcher(this.adminServer.getContextPath() + "/actuator/**"))
-				.and().rememberMe().key(UUID.randomUUID().toString()).tokenValiditySeconds(1209600);
+	@Bean
+	public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+		return http.securityMatcher(new NegatedServerWebExchangeMatcher(
+					ServerWebExchangeMatchers.pathMatchers("/instances")))
+				   .securityMatcher(new NegatedServerWebExchangeMatcher(
+						   ServerWebExchangeMatchers.pathMatchers("/instances/**")))
+				   .securityMatcher(new NegatedServerWebExchangeMatcher(
+						   ServerWebExchangeMatchers.pathMatchers("/actuator/**")))
+				   .authorizeExchange()
+				   .pathMatchers("/assets/**").permitAll()
+				   .anyExchange().authenticated()
+				   .and().formLogin()
+				   .and().csrf().disable()
+				   .build();
 	}
 }
