@@ -1,1 +1,1 @@
-# be-admin-service
+# be-admin-service ![Build status](https://github.com/notabarista/be-admin-service/actions/workflows/be_admin_service.yml/badge.svg?branch=main)
